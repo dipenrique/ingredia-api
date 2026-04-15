@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: pure-ingredia-api
+    runtime: node
+    region: oregon         # choose the region closest to your Atlas cluster
+    plan: starter          # upgrade to standard for production
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000          # Render assigns this automatically; kept for clarity
+      # Set these in the Render dashboard (never commit real values):
+      - key: MONGO_URI
+        sync: false           # prompts for value in Render dashboard
+      - key: MONGO_DATABASE
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false           # comma-separated list, e.g. https://pure-ingredia.netlify.app
+      - key: API_INTERNAL_SECRET
+        sync: false           # shared secret used by Next.js server components
