@@ -26,7 +26,7 @@ categoriesRouter.get('/', async (_req, res, next) => {
 
     // Aggregate distinct categories from the embedded categories array on products.
     const items = await db
-      .collection('products')
+      .collection(config.collections.products)
       .aggregate([
         { $unwind: '$categories' },
         {
