@@ -68,8 +68,11 @@ categoriesRouter.get('/:id/products', async (req, res, next) => {
       price_desc:    { price: -1 },
       rating_desc:   { rating: -1 },
       discount_desc: { discount: -1 },
+      reviews_desc:  { reviewCount: -1 },
     };
-    const mongoSort = sortMap[String(req.query.sort)] ?? { rating: -1 };
+
+    // const mongoSort = { ...(sortMap[String(req.query.sort)] ?? { rating: -1 }), id: 1 as const };
+    const mongoSort = { ...(sortMap[String(req.query.sort)] ?? { reviewCount: -1 }), id: 1 as const };
 
     const cacheKey = buildCacheKey(`category:${id}:products`, { page, pageSize, sort: req.query.sort ?? '' });
     const cached = cacheGet<object>(cacheKey);

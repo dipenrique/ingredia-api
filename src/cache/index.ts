@@ -1,4 +1,6 @@
 import NodeCache from 'node-cache';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Separate caches per data type so TTLs can be tuned independently.
 // All times are in seconds.
@@ -13,11 +15,15 @@ const cache = new NodeCache({ useClones: false });
 
 export type CacheTtlKey = keyof typeof TTL;
 
+const CACHE_DISABLED = process.env.DISABLE_CACHE === 'true';
+
 export function cacheGet<T>(key: string): T | undefined {
+  if (CACHE_DISABLED) return undefined;
   return cache.get<T>(key);
 }
 
 export function cacheSet<T>(key: string, value: T, ttlKey: CacheTtlKey): void {
+  if (CACHE_DISABLED) return;
   cache.set(key, value, TTL[ttlKey]);
 }
 
