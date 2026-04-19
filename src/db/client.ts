@@ -7,7 +7,7 @@ export async function getDb(): Promise<Db> {
   if (db) return db;
 
   const uri = process.env.MONGO_URI;
-  const dbName = process.env.MONGO_DATABASE ?? 'beauty';
+  const dbName = process.env.MONGO_DATABASE ?? '';
 
   if (!uri) {
     throw new Error('MONGO_URI environment variable is not set');
