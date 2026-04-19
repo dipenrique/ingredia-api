@@ -1,6 +1,4 @@
 import NodeCache from 'node-cache';
-import dotenv from 'dotenv';
-dotenv.config();
 
 // Separate caches per data type so TTLs can be tuned independently.
 // All times are in seconds.
