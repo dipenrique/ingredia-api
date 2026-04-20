@@ -70,6 +70,9 @@ searchRouter.get('/', async (req, res, next) => {
     let products: object[] = [];
     let productsTotal = 0;
     let ingredients: object[] = [];
+    let ingredientsTotal = 0;
+    let ingredientNames: object[] = [];
+    let ingredientNamesTotal = 0;
 
     // --- Product search (by name or brand) ---
     if (type === 'products' || type === 'all') {
@@ -98,18 +101,60 @@ searchRouter.get('/', async (req, res, next) => {
         reviewCount: 1, image: 1, categories: 1,
         ingredient_list_names: 1,
       };
-      ingredients = await col
-        .find(ingredientFilter)
-        .skip(skip)
-        .limit(pageSize)
-        .project(ingredientProjection)
-        .toArray();
+      const [items, total] = await Promise.all([
+        col.find(ingredientFilter).skip(skip).limit(pageSize).project(ingredientProjection).toArray(),
+        col.countDocuments(ingredientFilter),
+      ]);
+      ingredients = items;
+      ingredientsTotal = total;
+    }
+
+    // --- Ingredient name search: match against the ingredients collection ---
+    if (type === 'ingredient_names' || type === 'all') {
+      const ingredientCol = db.collection(config.collections.ingredients);
+      const nameFilter = {
+        $or: [
+          { name: { $regex: escapedQ, $options: 'i' } },
+          { name_normalized: { $regex: escapedQ, $options: 'i' } },
+        ],
+      };
+      const [items, total] = await Promise.all([
+        ingredientCol
+          .find(nameFilter)
+          .sort({ name: 1 })
+          .skip(skip)
+          .limit(pageSize)
+          .project({ _id: 0, name: 1, name_normalized: 1 })
+          .toArray(),
+        ingredientCol.countDocuments(nameFilter),
+      ]);
+      ingredientNames = items;
+      ingredientNamesTotal = total;
     }
 
     const body = {
       query: safeQ,
-      products: { items: products, total: productsTotal, page, pageSize },
-      ingredients: { items: ingredients },
+      products: {
+        items: products,
+        total: productsTotal,
+        page,
+        pageSize,
+        hasMore: skip + products.length < productsTotal,
+      },
+      ingredients: {
+        items: ingredients,
+        total: ingredientsTotal,
+        page,
+        pageSize,
+        hasMore: skip + ingredients.length < ingredientsTotal,
+      },
+      ingredientNames: {
+        items: ingredientNames,
+        total: ingredientNamesTotal,
+        page,
+        pageSize,
+        hasMore: skip + ingredientNames.length < ingredientNamesTotal,
+      },
     };
 
     cacheSet(cacheKey, body, 'search');
